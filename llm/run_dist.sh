@@ -32,11 +32,12 @@ LD_LIBRARY_PATH=/opt/software/openmpi-4.0.5/lib:/home/baidu_test/miniconda3/envs
 # conda init && conda activate sci-baidu
 python=python3.10
 
-# cd ../model_zoo/gpt-3/external_ops/ &&  ${python} setup.py install && cd -
+rf -rf ./log
 
+# cd ../model_zoo/gpt-3/external_ops/ &&  ${python} setup.py install && cd -
 PYTHONPATH=../ ${python} -m paddle.distributed.launch \
-	--log_dir log_$(hostname) \
-        --gpus 0,1,2,3,4,5,6,7 \
+	--log_dir ./log \
+    --gpus 0,1,2,3 \
 	run_pretrain.py \
     "llama/pretrain-llama_13b-pp4tp2sd2_stage1.json"
 

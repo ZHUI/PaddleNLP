@@ -839,7 +839,7 @@ class Trainer:
 
         self.timers and self.timers("read-data").start()
         
-        if self._globalstep_last_logged == 0 and os.getenv("SAVE_INIT_MODEL", None):
+        if self._globalstep_last_logged == 0 and int(os.getenv("SAVE_INIT_MODEL", 0)) == 1:
             self.save_model(os.path.join(self.args.output_dir, "_init_model"))
 
         for epoch in range(epochs_trained, num_train_epochs):
