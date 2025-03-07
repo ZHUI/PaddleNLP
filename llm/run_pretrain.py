@@ -348,9 +348,12 @@ class PretrainingTrainer(Trainer):
 
 def main():
     parser = PdArgumentParser((ModelArguments, DataArguments, PreTrainingArguments))
+
     def pre():
         import paddle
-        paddle.empty([30*1024*1024*1024], dtype="uint8")
+
+        paddle.empty([30 * 1024 * 1024 * 1024], dtype="uint8")
+
     pre()
     # Support format as "args.json --arg1 value1 --arg2 value2.”
     # In case of conflict, command line arguments take precedence.
@@ -378,7 +381,6 @@ def main():
 
     training_args.eval_iters = 10
     training_args.test_iters = training_args.eval_iters * 10
-
 
     # Log model and data config
     training_args.print_config(model_args, "Model")
@@ -411,7 +413,7 @@ def main():
     LlmMetaConfig.set_llm_config(config, training_args)
     config.use_fast_layer_norm = model_args.use_fast_layer_norm
     config.vocab_size = 65536
-    config.max_position_embeddings = 128*1024 # 128 * 1024
+    config.max_position_embeddings = 128 * 1024  # 128 * 1024
 
     config.seq_length = data_args.max_seq_length
     # There are some technique extend RotaryEmbedding context. so don't change max_position_embeddings
