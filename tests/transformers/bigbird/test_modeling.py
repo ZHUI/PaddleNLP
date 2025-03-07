@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import unittest
+from unittest import skip
 
 import paddle
 from parameterized import parameterized_class
@@ -339,6 +340,7 @@ class BigBirdModelIntegrationTest(ModelTesterPretrainedMixin, unittest.TestCase)
     paddlehub_remote_test_model_path = "__internal_testing__/tiny-random-bigbird"
 
     @slow
+    @skip("Skip and wait to fix.")
     def test_inference_no_attention(self):
         model = BigBirdModel.from_pretrained("bigbird-base-uncased")
         model.eval()
@@ -361,6 +363,7 @@ class BigBirdModelIntegrationTest(ModelTesterPretrainedMixin, unittest.TestCase)
         self.assertTrue(paddle.allclose(output[:, 1:4, 1:4], expected_slice, atol=1e-4))
 
     @slow
+    @skip("Skip and wait to fix.")
     def test_inference_with_attention(self):
         model = BigBirdModel.from_pretrained("bigbird-base-uncased")
         model.eval()

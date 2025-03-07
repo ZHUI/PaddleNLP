@@ -837,14 +837,31 @@ class Qwen2DecoderLayer(nn.Layer):
         if use_cache:
             present_key_value = outputs[2 if output_attentions else 1]
 
-        hidden_states = residual + hidden_states
+        def ffn(residual, hidden_states):
+            hidden_states = residual + hidden_states
 
-        # Fully Connected
-        residual = hidden_states
-        hidden_states = self.post_attention_layernorm(hidden_states)
-        hidden_states = self.mlp(hidden_states)
+            # Fully Connected
+            residual = hidden_states
+            hidden_states = self.post_attention_layernorm(hidden_states)
+            hidden_states = self.mlp(hidden_states)
 
-        hidden_states = residual + hidden_states
+            hidden_states = residual + hidden_states
+            return hidden_states
+
+        has_gradient = not hidden_states.stop_gradient
+        if (
+            self.enable_recompute
+            and self.layerwise_recompute
+            and has_gradient
+            and self.recompute_granularity == "full_attn"
+        ):
+            hidden_states = recompute(
+                ffn,
+                residual,
+                hidden_states,
+            )
+        else:
+            hidden_states = ffn(residual, hidden_states)
 
         outputs = (hidden_states,)
 
@@ -1282,7 +1299,9 @@ class Qwen2Model(Qwen2PretrainedModel):
             inputs_embeds = ScatterOp.apply(inputs_embeds)
 
         # embed positions
-        if attn_mask_startend_row_indices is not None or get_use_casual_mask():
+        if self.config.use_flash_attention:
+            attention_mask = None
+        elif attn_mask_startend_row_indices is not None or get_use_casual_mask():
             attention_mask = None
         else:
             # [bs, seq_len]
@@ -1641,7 +1660,7 @@ class Qwen2ForCausalLM(Qwen2PretrainedModel):
                 self.config.tensor_parallel_degree <= 1
             ), "The argument `use_fused_linear_cross_entropy` is imcompatiable with tensor parallel "
 
-            masked_lm_loss = linear_cross_entropy(hidden_states, self.lm_head.weight, targets=labels)
+            masked_lm_loss = linear_cross_entropy(hidden_states, self.lm_head.weight, targets=labels, reduction="none")
 
             binary_sequence = paddle.where(
                 masked_lm_loss > 0, paddle.ones_like(masked_lm_loss), paddle.zeros_like(masked_lm_loss)

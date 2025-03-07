@@ -91,7 +91,7 @@ def combining(x, combine_weights, scatter_index):
     return paddle.matmul(combine_weights, x).squeeze(1)  # [seq,1,2] @ [seq,2,dim] -> [seq,1,dim]
 
 
-class LocalGatePart1(dist.LocalLayer):
+class LocalGatePart1():
     def __init__(self, config, gate: PretrainedMoEGate, ipp=0):
         mesh = get_mesh(ipp)
         out_dist_attrs = [
@@ -127,7 +127,7 @@ class LocalGatePart1(dist.LocalLayer):
         return reshaped_input, reshaped_scores, exp_counts, l_aux, l_zloss
 
 
-class LocalGateAndDispatch(dist.LocalLayer):
+class LocalGateAndDispatch():
     def __init__(self, gate: PretrainedMoEGate, ipp=0):
         mesh = get_mesh(ipp)
         out_dist_attrs = [
@@ -147,7 +147,7 @@ class LocalGateAndDispatch(dist.LocalLayer):
         return dispatched_input, combine_weights
 
 
-class LocalCombine(dist.LocalLayer):
+class LocalCombine():
     def __init__(self, ipp=0):
         mesh = get_mesh(ipp)
         out_dist_attrs = [(mesh, [dist.Shard(0)])]
