@@ -176,6 +176,7 @@ def scaled_dot_product_attention(
     training=True,
     sequence_parallel=False,
     skip_recompute=False,
+    window_size=None,
 ):
     bsz, q_len, num_heads, head_dim = query_states.shape
     _, kv_seq_len, _, _ = value_states.shape
@@ -193,6 +194,7 @@ def scaled_dot_product_attention(
             output_attentions,
             attn_mask_startend_row_indices=attn_mask_startend_row_indices,
             sequence_parallel=sequence_parallel,
+            window_size=window_size,
             skip_recompute=skip_recompute,
         )
     else:
@@ -706,6 +708,7 @@ class Qwen2Attention(nn.Layer):
                 training=self.training,
                 sequence_parallel=self.sequence_parallel,
                 use_reentrant=self.config.recompute_use_reentrant,
+                window_size=None if not hasattr(self.config, "window_size") else self.config.window_size,
             )
         else:
             outputs = self.attn_func(
@@ -718,6 +721,7 @@ class Qwen2Attention(nn.Layer):
                 attn_mask_startend_row_indices=attn_mask_startend_row_indices,
                 training=self.training,
                 sequence_parallel=self.sequence_parallel,
+                window_size=None if not hasattr(self.config, "window_size") else self.config.window_size,
             )
         if output_attentions:
             attn_output, attn_weights = outputs

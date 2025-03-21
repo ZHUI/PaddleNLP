@@ -361,7 +361,9 @@ def total_processes_number(local_rank):
     return 1
 
 
-def speed_metrics(split, start_time, num_samples=None, num_steps=None, seq_length=None, model_flops_per_token=None):
+def speed_metrics(
+    split, start_time, num_samples=None, num_steps=None, seq_length=None, model_flops_per_token=None, grad_norm=None
+):
     """
     Measure and return speed performance metrics.
 
@@ -386,6 +388,8 @@ def speed_metrics(split, start_time, num_samples=None, num_steps=None, seq_lengt
             result[f"{split}_hardware_tflops_per_device"] = round(
                 tokens_per_second_per_device * model_flops_per_token / 2**40, 2
             )
+    if grad_norm is not None:
+        result["grad_norm"] = round(grad_norm, 5)
 
     if num_steps is not None:
         steps_per_second = num_steps / runtime

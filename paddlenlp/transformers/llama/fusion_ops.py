@@ -176,7 +176,9 @@ def fusion_flash_attention(
     reshard_layer=None,
     npu_is_casual=False,
     skip_recompute=False,
+    window_size=None,
 ):
+    # raise ValueError(window_size)
     # Note:
     # 1. The head_dim of query_states and key_states should be the same. And the head_dim of value_states should be used for reshape.
     bsz, q_len, num_heads, _ = query_states.shape
@@ -281,15 +283,27 @@ def fusion_flash_attention(
                             enable=skip_recompute,
                         )
                 else:
-                    attn_output = no_recompute(
-                        F.scaled_dot_product_attention,
-                        query_states,
-                        key_states,
-                        value_states,
-                        attn_mask=attention_mask,
-                        is_causal=query_states.shape[1] != 1,
-                        enable=skip_recompute,
-                    )
+                    if window_size and window_size > 1:
+                        # raise ValueError(window_size)
+                        attn_output = no_recompute(
+                            F.flashmask_attention,
+                            query_states,
+                            key_states,
+                            value_states,
+                            window_size=window_size,
+                            causal=True,
+                            enable=skip_recompute,
+                        )
+                    else:
+                        attn_output = no_recompute(
+                            F.scaled_dot_product_attention,
+                            query_states,
+                            key_states,
+                            value_states,
+                            attn_mask=attention_mask,
+                            is_causal=query_states.shape[1] != 1,
+                            enable=skip_recompute,
+                        )
         attn_weights = None
 
     if reshard_layer is not None:

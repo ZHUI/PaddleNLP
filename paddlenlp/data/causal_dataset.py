@@ -77,6 +77,7 @@ def get_datasets_weights_and_num_samples(data_prefix, train_val_test_num_samples
 
     # The data prefix should be in the format of:
     #   weight-1, data-prefix-1, weight-2, data-prefix-2, ..
+    # raise ValueError(data_prefix)
     assert len(data_prefix) % 2 == 0
     num_datasets = len(data_prefix) // 2
     weights = [0] * num_datasets
@@ -182,12 +183,12 @@ def build_train_valid_test_datasets(
             train_datasets, weights, train_num_samples, share_folder, data_cache_path=data_cache_path
         )
     blending_valid_dataset = None
-    if valid_datasets:
+    if valid_datasets and valid_num_samples > 0:
         blending_valid_dataset = BlendableDataset(
             valid_datasets, weights, valid_num_samples, share_folder, data_cache_path=data_cache_path
         )
     blending_test_dataset = None
-    if test_datasets:
+    if test_datasets and test_num_samples > 0:
         blending_test_dataset = BlendableDataset(
             test_datasets,
             weights,

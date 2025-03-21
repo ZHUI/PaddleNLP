@@ -229,7 +229,7 @@ def create_pretrained_dataset(
         logger.info(f"Sample data for {mode} mode.")
         # input_ids, loss_mask, attention_mask, position_ids, labels = data
         input_ids = data["text"]
-        logger.info(tokenizer._decode(list(input_ids)))
+        logger.info(tokenizer._decode(list(input_ids))[:4096])
 
     from paddlenlp.data import Stack
 
@@ -247,9 +247,9 @@ def create_pretrained_dataset(
     if need_data:
         if training_args.do_train:
             print_dataset(train_dataset[0], "train")
-        if training_args.do_eval:
+        if training_args.do_eval and valid_dataset:
             print_dataset(valid_dataset[0], "valid")
-        if training_args.do_predict:
+        if training_args.do_predict and test_dataset:
             print_dataset(test_dataset[0], "test")
 
     return train_dataset, valid_dataset, test_dataset, _collate_data
@@ -354,7 +354,7 @@ def main():
 
         paddle.empty([30 * 1024 * 1024 * 1024], dtype="uint8")
 
-    pre()
+    # pre()
     # Support format as "args.json --arg1 value1 --arg2 value2.”
     # In case of conflict, command line arguments take precedence.
     if len(sys.argv) >= 2 and sys.argv[1].endswith(".json"):
@@ -407,13 +407,14 @@ def main():
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
             )
 
-    tokenizer = AutoTokenizer.from_pretrained(model_args.tokenizer_name_or_path)
+    tokenizer = AutoTokenizer.from_pretrained(model_args.tokenizer_name_or_path, use_fast=True)
     config = AutoConfig.from_pretrained(model_args.model_name_or_path)
     # set all llm config
     LlmMetaConfig.set_llm_config(config, training_args)
     config.use_fast_layer_norm = model_args.use_fast_layer_norm
     config.vocab_size = 65536
     config.max_position_embeddings = 128 * 1024  # 128 * 1024
+    config.window_size = 8192
 
     config.seq_length = data_args.max_seq_length
     # There are some technique extend RotaryEmbedding context. so don't change max_position_embeddings

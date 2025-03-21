@@ -1526,6 +1526,13 @@ class Trainer:
                     model_flops_per_token = self.model.get_hardware_flops()
                 except NotImplementedError:
                     model_flops_per_token = None
+            grad_norm_value = None
+            from .unified_checkpoint.utils import unwrap_optimizer
+
+            if unwrap_optimizer(self.optimizer)._grad_clip is not None and hasattr(
+                unwrap_optimizer(self.optimizer)._grad_clip, "_grad_norm"
+            ):
+                grad_norm_value = unwrap_optimizer(self.optimizer)._grad_clip._grad_norm
 
             # Do not log speed metrics if all steps are skipped since last log.
             if num_steps > 0:
@@ -1537,6 +1544,7 @@ class Trainer:
                         num_steps=num_steps,
                         seq_length=seq_length,
                         model_flops_per_token=model_flops_per_token,
+                        grad_norm=grad_norm_value,
                     )
                 )
 
