@@ -72,6 +72,7 @@ moe_arguments = {
     "unified_checkpoint": 1,
     "continue_training": 0,
     "sequence_parallel": 0,
+    "use_expert_parallel": 1,
 }
 
 

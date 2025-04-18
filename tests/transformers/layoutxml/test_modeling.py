@@ -24,7 +24,6 @@ from paddlenlp.transformers import (
     LayoutXLMForSequenceClassification,
     LayoutXLMForTokenClassification,
     LayoutXLMModel,
-    LayoutXLMPretrainedModel,
 )
 
 from ...testing_utils import slow
@@ -315,7 +314,8 @@ class LayoutXLMModelModelTest(ModelTesterMixin, unittest.TestCase):
 
     @slow
     def test_model_from_pretrained(self):
-        for model_name in list(LayoutXLMPretrainedModel.pretrained_init_configuration)[:1]:
+        names = ["vi-layoutxlm-base-uncased"]
+        for model_name in names:
             model = LayoutXLMModel.from_pretrained(model_name)
             self.assertIsNotNone(model)
 

@@ -895,7 +895,9 @@ def _convert_state_dict_dtype_and_shape(state_dict, model_to_load):
                 )
             # confirm parameter cast is executed on the same device as model
             # TODO: cast(FP32 -> FP16) has diff on different devices, need to fix it
-            if state_dict[key].is_floating_point() and state_dict[key].dtype != value.dtype:
+            if (state_dict[key].is_floating_point() or value.is_floating_point()) and state_dict[
+                key
+            ].dtype != value.dtype:
                 state_dict[key] = paddle.cast(state_dict.pop(key), value.dtype)
             # unified 0d and 1d tensor
             if is_0d_or_1d(value) and is_0d_or_1d(state_dict[key]):
